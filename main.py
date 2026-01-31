@@ -4,6 +4,13 @@ from sort_videos_based_on import sort_videos, get_video_paths
 from timestamps_onto_startingClip import generate_timestamps, render_text_to_image, ffmpeg_overlay_png
 
 def cli_main():
+    #global file paths:
+    folder = r"C:\Users\Pc\Desktop\Teaching\temp"  #path to directory of stored clips (to be concatnated / timestamps extracted ..)
+    sorted_videos_path= 'inputs.txt' #order of concatination, video paths
+    timestamps_file = "timestamps.txt"
+    overlay_path    = "timestamps_overlay.png" #timestamp image will be saved here
+    output_video    = "starting_clip_modified.mp4" #temp start cilp saved here
+
     print("="*50)
     print("🎬 Timestamped Video Compiler")
     print("="*50)
@@ -14,7 +21,6 @@ def cli_main():
     start_time = time.perf_counter()
     
     # Step 1: Get video paths
-    folder = r"C:\Users\Pc\Desktop\Teaching\temp"
     video_paths = get_video_paths(folder)
     print(f"Found {len(video_paths)} video(s).")
 
@@ -34,15 +40,30 @@ def cli_main():
         else:
             sort_mode = "manual"
 
-        sorted_paths = sort_videos(video_paths, mode=sort_mode)
+        sorted_paths = sort_videos(video_paths, mode=sort_mode, temp_videos_paths=sorted_videos_path)
         print(f"Sorted paths: {sorted_paths}.")
         cont = input(f"\ndo you want to redo sorting (y/n) ? ")
 
     # Step 3: Generate timestamps
-    timestamps_text = generate_timestamps(sorted_paths)
+    timestamps_text = generate_timestamps(sorted_paths, output_file=timestamps_file)
     print(f"\n{"="*50}")
     print("Generated timestamps:")
     print(timestamps_text)
+    print("="*50)
+
+    # Segway: if you'd like to change the timestamps headlines for some extra details on the videos
+    print(f"\n{"="*50}")
+    change_timestamps = input("would you like to customize the timestamps (y/n) ? ")
+    change_timestamps = (change_timestamps == 'y')
+    if change_timestamps:
+        input(f"Edit {timestamps_file} and customize the timestamps, once saved your edits press Enter.")
+
+        # Read back edited timestamps
+        with open(timestamps_file, "r", encoding="utf-8") as f:
+            timestamps_text = [line.strip() for line in f.readlines() if line.strip()]
+            timestamps_text = "\n".join(timestamps_text)
+        print("The Custom Generated timestamps:")
+        print(timestamps_text)
     print("="*50)
 
     # Step 4: Choose text style; everything after this is just editing, no user input required.
@@ -52,13 +73,13 @@ def cli_main():
     text_color = input("Enter color (e.g. black, white, red): ").strip()
     outline_choice = input("Add outline? (y/n): ").strip().lower()
     final_output   = f"{input("Enter the desired final video name: ")}.mp4"
+    text_start_time= int(input("when would you like the text to appear? "))
     outline = (outline_choice == "y")
     print("="*50)
 
+    # Step 5: Render timestamp image
     print(f"\n{"="*50}")
     print("Creating the video:")
-    # Step 5: Render timestamp image
-    overlay_path = "timestamps_overlay.png"
     Editing_time_start = time.perf_counter()
 
     render_text_to_image(
@@ -73,7 +94,7 @@ def cli_main():
     print(f"Timestamp image saved to: {overlay_path}.")
 
     # Step 6: Overlay image onto starting clip
-    output_video = "starting_clip_modified.mp4"
+    output_video = output_video
     #if output_video already exisits, delete it
     if os.path.exists(output_video):
         os.remove(output_video)
@@ -81,7 +102,8 @@ def cli_main():
     ffmpeg_overlay_png(
         input_video=sorted_paths[0],
         overlay_png=overlay_path,
-        output_video=output_video
+        output_video=output_video,
+        start=text_start_time
     )
     print(f"Modified starting clip saved to: {output_video}")
 
@@ -89,9 +111,9 @@ def cli_main():
     sorted_paths[0] = output_video
 
     # Step 8: Concatenate videos
-    input_txt_path = "inputs.txt"    
+    final_output = os.path.join(folder, final_output)
     print("Concatinating videos:")
-    create_video(sorted_paths, input_txt_path, final_output)
+    create_video(sorted_paths, sorted_videos_path, final_output)
 
     end_time = time.perf_counter()
     

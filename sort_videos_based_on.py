@@ -36,7 +36,7 @@ def manual_sort(paths, list_path="inputs.txt"):
 
 
 # wrapper method of sorting paths
-def sort_videos(paths, mode="creation"):
+def sort_videos(paths, mode="creation", temp_videos_paths='inputs.txt'):
     """
 
     :param paths: list of paths of videos from the temp folder.
@@ -50,7 +50,7 @@ def sort_videos(paths, mode="creation"):
     elif mode == "alpha":
         return sort_alphabetically(paths)
     elif mode == "manual":
-        return manual_sort(paths)
+        return manual_sort(paths, list_path=temp_videos_paths)
     else:
         raise ValueError(f"Unknown sorting mode: {mode}")
     

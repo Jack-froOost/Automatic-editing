@@ -81,9 +81,10 @@ def reshape_arabic(text):
 
 
 from PIL import Image, ImageDraw, ImageFont
-def render_text_to_image(text, output_path='img.png', font_size=40, text_color="black", outline=True, max_width=1000,padding=20):
+def render_text_to_image(text, output_path='img.png', font_size=40, text_color="black", outline=True, max_width=1000,padding=20,
+                         font_path = r"C:\Windows\Fonts\arial.ttf"):
     # Use monospaced font to preserve spacing
-    font_path = r"C:\Windows\Fonts\arial.ttf"  # Consolas
+    # font_path = r"C:\Windows\Fonts\arial.ttf"  # Consolas
     font = ImageFont.truetype(font_path, size=font_size)
 
     # Split text into lines exactly as written
@@ -125,7 +126,8 @@ def render_text_to_image(text, output_path='img.png', font_size=40, text_color="
 import numpy as np
 def ffmpeg_overlay_png(input_video, overlay_png, output_video, start=5, duration=12.5):
     end_time = start + duration
-
+    #say resolution is 1920x1080, y -> 100 for timestamps to appear seems appropriate..
+    #set y = max((H-h)/2,0) to be in the center of the screen for any resolution instead of hardcoding it..
     cmd = [
     "ffmpeg",
     "-stats", "-v", "error",
@@ -133,7 +135,7 @@ def ffmpeg_overlay_png(input_video, overlay_png, output_video, start=5, duration
     "-i", input_video,
     "-i", overlay_png,
     "-filter_complex",
-    (f"[0:v][1:v]overlay=x=20:y='max((H-h)/2,0)':enable='between(t,{start},{end_time})'"),
+    (f"[0:v][1:v]overlay=x=10:y='100':enable='between(t,{start},{end_time})'"),
     "-c:a", "copy",
     "-c:v", "libx264",
     "-crf", "18",
