@@ -6,11 +6,11 @@ from timestamps_onto_startingClip import generate_timestamps, render_text_to_ima
 def cli_main():
     #global file paths:
     folder = r"C:\Users\Pc\Desktop\Teaching\temp"  #path to directory of stored clips (to be concatnated / timestamps extracted ..)
-    sorted_videos_path= 'inputs.txt' #order of concatination, video paths
-    timestamps_file = "timestamps.txt"
-    overlay_path    = "timestamps_overlay.png" #timestamp image will be saved here
-    output_video    = "starting_clip_modified.mp4" #temp start cilp saved here
-
+    sorted_videos_path = 'inputs.txt' #order of concatination, video paths
+    timestamps_file    = "timestamps.txt"
+    overlay_path       = "timestamps_overlay.png" #timestamp image will be saved here
+    output_video       = "starting_clip_modified.mp4" #temp start cilp saved here
+ 
     print("="*50)
     print("🎬 Timestamped Video Compiler")
     print("="*50)
@@ -85,7 +85,7 @@ def cli_main():
     render_text_to_image(
         timestamps_text,
         output_path=overlay_path,
-        font_size=45,
+        font_size=60,
         text_color=text_color,
         outline=outline,
         max_width=int(1920 * 0.7),
@@ -116,11 +116,46 @@ def cli_main():
     create_video(sorted_paths, sorted_videos_path, final_output)
 
     end_time = time.perf_counter()
-    
+    total_elapsed_time = end_time - start_time
+    avg_time_to_edit   = 60 * 15 #13 min usually to 15 min
+    time_saved = (avg_time_to_edit - total_elapsed_time)/60 #in minutes
+
     print(f"\n\n🎉 Final video created: {final_output}")
-    print(f"Total Elapsed time: {(end_time - start_time)}.\nTime to Edit: {end_time-Editing_time_start}.")
+    print(f'Congrats !, u saved {time_saved:.2f} minutes of editing ! :)')
+    print(f"Total Elapsed time: {total_elapsed_time:.2f}.\nTime to Edit: {(end_time-Editing_time_start):.2f}.")
     print(f"- Frost.")    
     print(f"{"="*50}")
 
 if __name__ == "__main__":
     cli_main()
+
+
+#some notes: 
+#you can use this command to probe a video to check the smaple rate and other meta data, why you might do this is:
+#to concatnate videos using this script you need them to have the same samplerate/codec_name ect. (for speed purposes)
+
+#ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels,channel_layout -of json "yourfile.mp4"
+
+#you'll get a response like:
+# {
+#     "programs": [
+
+#     ],
+#     "stream_groups": [
+
+#     ],
+#     "streams": [
+#         {
+#             "codec_name": "aac",
+#             "sample_rate": "48000",
+#             "channels": 2,
+#             "channel_layout": "stereo"
+#         }
+#     ]
+# }
+
+
+
+#also:
+#this command re-encodes a video to have the same sample rate and codec name, you'd do this to make all videos have the same metadata
+# ffmpeg -i "yourfile.mp4" -c:v copy -c:a aac -ar 48000 -ac 2 "yourfile_fixed.mp4"

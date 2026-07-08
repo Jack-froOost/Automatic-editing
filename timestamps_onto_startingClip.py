@@ -34,7 +34,7 @@ def format_time(seconds):
         if minutes >= 10:
             return f"{hours:01d}:{minutes:02d}:{secs:02d}"
         else:
-            return f"{hours:01d}:{minutes:01d}:{secs:02d}"
+            return f"{hours:01d}:0{minutes:01d}:{secs:02d}"
     else:
         if minutes >=10:
             return f"{minutes:02d}:{secs:02d}"
@@ -81,32 +81,62 @@ def reshape_arabic(text):
 
 
 from PIL import Image, ImageDraw, ImageFont
-def render_text_to_image(text, output_path='img.png', font_size=40, text_color="black", outline=True, max_width=1000,padding=20,
-                         font_path = r"C:\Windows\Fonts\arial.ttf"):
-    # Use monospaced font to preserve spacing
-    # font_path = r"C:\Windows\Fonts\arial.ttf"  # Consolas
-    font = ImageFont.truetype(font_path, size=font_size)
+from PIL import Image, ImageFont, ImageDraw
 
-    # Split text into lines exactly as written
+from PIL import Image, ImageFont, ImageDraw
+
+from PIL import Image, ImageFont, ImageDraw
+
+def render_text_to_image(text, output_path='img.png', font_size=40, text_color="black", outline=True, 
+                         max_width=1920, max_height=1080, padding=20, min_font_size=12,
+                         font_path=r"C:\Windows\Fonts\arial.ttf"):
+    
     lines = text.splitlines()
+    current_font_size = font_size
+    vertical_buffer = 50 
 
-    # Measure line height
-    line_height = font.getbbox("A")[3] + 10
-    img_height = line_height * len(lines) + padding * 2
+    while current_font_size >= min_font_size:
+        font = ImageFont.truetype(font_path, size=current_font_size)
+        
+        # FIX: Get the true typographical metrics of the font
+        ascent, descent = font.getmetrics()
+        
+        # Proportional line height: true text height + 35% breathing room
+        line_height = int((ascent + descent) * 1.1)  
+        
+        total_text_height = line_height * len(lines)
+        required_img_height = total_text_height + (padding * 2) + (vertical_buffer * 2)
 
-    # Create transparent image
-    img = Image.new("RGBA", (max_width, img_height), (0, 0, 0, 0))
+        if required_img_height <= max_height:
+            break
+            
+        current_font_size -= 2
+    else:
+        font = ImageFont.truetype(font_path, size=min_font_size)
+        ascent, descent = font.getmetrics()
+        line_height = int((ascent + descent) * 1.35)
+        required_img_height = max_height
+
+    final_height = min(required_img_height, max_height)
+
+    img = Image.new("RGBA", (max_width, final_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Outline settings
     stroke_color = "white" if text_color == "black" else "black" if outline else None
     stroke_width = 2 if outline else 0
 
-    # Draw each line
-    y = padding
+    y = padding + vertical_buffer
+    
     for line in lines:
-        if any('\u0600' <= c <= '\u06FF' for c in line): # contains Arabic
-            line = reshape_arabic(line)
+        if y + line_height > final_height - (padding + vertical_buffer):
+            break
+
+        if any('\u0600' <= c <= '\u06FF' for c in line): 
+            try:
+                line = reshape_arabic(line)
+            except NameError:
+                pass
+
         draw.text(
             (padding, y),
             line,
@@ -117,17 +147,20 @@ def render_text_to_image(text, output_path='img.png', font_size=40, text_color="
         )
         y += line_height
 
-    # Save PNG
     img.save(output_path, format="PNG")
     return img
 
 
-
 import numpy as np
-def ffmpeg_overlay_png(input_video, overlay_png, output_video, start=5, duration=12.5):
+def ffmpeg_overlay_png(input_video, overlay_png, output_video, start=5, duration=12.5, position="center"):
     end_time = start + duration
     #say resolution is 1920x1080, y -> 100 for timestamps to appear seems appropriate..
-    #set y = max((H-h)/2,0) to be in the center of the screen for any resolution instead of hardcoding it..
+    #set y='max((H-h)/2,0)' to be in the center of the screen for any resolution instead of hardcoding it..
+    # in the future u could do a position parameter that sets the x and y values accordingly, for now we will just do left onlu.
+    # if position == "left":
+    #     overlay = "overlay=x=10:y='max((H-h)/2,0)'"
+    # else:
+    #     overlay = f"overlay=x='max((W-w)/2,0)':y=20"
     cmd = [
     "ffmpeg",
     "-stats", "-v", "error",
@@ -135,7 +168,7 @@ def ffmpeg_overlay_png(input_video, overlay_png, output_video, start=5, duration
     "-i", input_video,
     "-i", overlay_png,
     "-filter_complex",
-    (f"[0:v][1:v]overlay=x=10:y='100':enable='between(t,{start},{end_time})'"),
+    (f"[0:v][1:v]overlay=x=10:y='max((H-h)/2,0)':enable='between(t,{start},{end_time})'"),
     "-c:a", "copy",
     "-c:v", "libx264",
     "-crf", "18",

@@ -1,4 +1,19 @@
-0:12         Ex 47-23 تكامل لمساحة منتظمة هندسيًا
-4:22         Ex 36-26 نطلع افرج الدالة للفترة
-6:59         Ex 31-31 نقرب قيمة للتكامل
-12:44       I النهاية
+0:43           Q1) 1) 
+2:45           Q1) 2) ∫ x² e³ˣ dx
+10:53         Q1) 3) improper integral
+13:36         Q2) 1) a) Alt harmonic series
+17:22         Q2) 1) b) conv or div series
+20:55         Q2) 2) power series
+30:17         Q3) 1) sketch the domain
+33:55         Q3) 2) show limit DNE
+39:09         Q3) 3) show that the limit exists
+47:44         Q4) 1) partial derivitives
+50:35         Q4) 2) chain rule
+58:29         Q4) 3) gradient
+1:03:08      Q4) 4) implicit differentiation
+1:09:28      Q5) Directional derivitive
+1:14:55      Q5) 1) sketch the parametric curves
+1:18:44      Q5) 2) points of intersection in curves
+1:23:35      Q5) 3) slope of the tangent line
+1:25:24      Q5) 4) V.T and H.T
+1:29:42      I نشيك على الاختبار
